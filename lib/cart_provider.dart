@@ -9,7 +9,13 @@ class CartProvider with ChangeNotifier {
 
   UnmodifiableListView<Item> get items => UnmodifiableListView(_items);
 
-  int get totalPrice => _items.length * 40;
+  int get totalPrice {
+    int precio = 0;
+    _items.forEach((element) {
+      precio += element.precio;
+    });
+    return precio;
+  }
 
   bool _efectivo = false;
 

@@ -17,10 +17,10 @@ class ItemList extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) => CartPage()));
-              },
+              onTap: () => cart.items.isNotEmpty
+                  ? Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) => CartPage()))
+                  : null,
               child: Container(
                 height: 150.0,
                 width: 45.0,
@@ -41,7 +41,7 @@ class ItemList extends StatelessWidget {
         child: ListView.builder(
             itemCount: list.length,
             itemBuilder: (context, i) => ListTile(
-                  title: Text('${list[i].name} - \$40'),
+                  title: Text('${list[i].name} - \$${list[i].precio}'),
                   leading: Icon(Icons.shop),
                   trailing: GestureDetector(
                       onTap: () => cart.add(list[i]),
@@ -55,9 +55,9 @@ class ItemList extends StatelessWidget {
 }
 
 final list = [
-  Item(id: 0, name: 'Item numero 0'),
-  Item(id: 1, name: 'Item numero 1'),
-  Item(id: 2, name: 'Item numero 2'),
-  Item(id: 3, name: 'Item numero 3'),
-  Item(id: 4, name: 'Item numero 4'),
+  Item(id: 0, name: 'Item numero 0', precio: 20),
+  Item(id: 1, name: 'Item numero 1', precio: 40),
+  Item(id: 2, name: 'Item numero 2', precio: 60),
+  Item(id: 3, name: 'Item numero 3', precio: 80),
+  Item(id: 4, name: 'Item numero 4', precio: 100),
 ];

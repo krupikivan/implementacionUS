@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 import 'package:realizarPedido/input_fortmat.dart';
 import 'package:realizarPedido/payment.dart';
 import 'cart_provider.dart';
+import 'package:intl/intl.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key key}) : super(key: key);
@@ -26,10 +26,14 @@ class _CartPageState extends State<CartPage> {
   var _autoValidate = false;
   var _card = PaymentCard();
   bool showCredit;
+  bool loAntesPosible;
+  DateTime selectedDate;
+  TimeOfDay selectedTime;
   @override
   void initState() {
     super.initState();
     showCredit = false;
+    loAntesPosible = false;
     _paymentCard.type = CardType.Others;
     numberController.addListener(_getCardTypeFrmNumber);
   }
@@ -52,13 +56,102 @@ class _CartPageState extends State<CartPage> {
         child: ListView(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               child: Column(children: [
+                Text("Direccion"),
                 TextField(
                   decoration: InputDecoration(
-                      icon: Icon(Icons.location_on),
-                      labelText: 'Indique direccion (Calle - Numero - Ciudad)'),
+                    icon: Icon(Icons.location_on),
+                    labelText: 'Calle',
+                  ),
                   controller: _dirContr,
+                ),
+                TextField(
+                  decoration: InputDecoration(
+                      icon: Icon(Icons.location_on), labelText: 'Numero'),
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: false,
+                    signed: false,
+                  ),
+                  controller: _dirContr,
+                ),
+                TextField(
+                  decoration: InputDecoration(
+                      icon: Icon(Icons.location_on), labelText: 'Ciudad'),
+                  controller: _dirContr,
+                ),
+                SizedBox(height: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text("Lo antes posible "),
+                        Switch(
+                          value: loAntesPosible,
+                          onChanged: (val) =>
+                              setState(() => loAntesPosible = val),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        loAntesPosible
+                            ? SizedBox()
+                            : RaisedButton(
+                                child: Text(selectedDate == null
+                                    ? 'Fecha'
+                                    : DateFormat('dd/MM/yy')
+                                        .format(selectedDate)
+                                        .toString()),
+                                onPressed: () async {
+                                  DateTime date = await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          selectedDate ?? DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate:
+                                          DateTime(DateTime.now().year + 1));
+                                  if (date != null)
+                                    setState(() {
+                                      selectedDate = date;
+                                    });
+                                },
+                              ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        loAntesPosible
+                            ? SizedBox()
+                            : RaisedButton(
+                                child: Text(selectedTime == null
+                                    ? 'Hora'
+                                    : DateFormat('HH:mm')
+                                        .format(DateTime(
+                                            DateTime.now().year,
+                                            DateTime.now().month,
+                                            DateTime.now().day,
+                                            selectedTime.hour,
+                                            selectedTime.minute))
+                                        .toString()),
+                                onPressed: () async {
+                                  TimeOfDay time = await showTimePicker(
+                                    context: context,
+                                    initialTime:
+                                        selectedTime ?? TimeOfDay.now(),
+                                  );
+                                  if (time != null)
+                                    setState(() {
+                                      selectedTime = time;
+                                    });
+                                },
+                              )
+                      ],
+                    )
+                  ],
                 ),
                 SizedBox(height: 20),
                 Row(
@@ -96,10 +189,7 @@ class _CartPageState extends State<CartPage> {
                           children: cart.items
                               .map((e) => ListTile(
                                     title: Text(e.name),
-                                    leading: GestureDetector(
-                                        onTap: () => cart.add(e),
-                                        child:
-                                            Icon(Icons.remove_circle_outline)),
+                                    trailing: Text('\$${e.precio.toString()}'),
                                   ))
                               .toList(),
                         ),
@@ -127,7 +217,7 @@ class _CartPageState extends State<CartPage> {
       child: Form(
           key: _formKey,
           autovalidate: _autoValidate,
-          child: ListView(
+          child: Column(
             children: <Widget>[
               SizedBox(
                 height: 20.0,
