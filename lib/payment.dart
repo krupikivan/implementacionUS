@@ -26,7 +26,7 @@ class CardUtils {
     }
 
     if (value.length < 3 || value.length > 4) {
-      return "CVV is invalid";
+      return "CVV invalido";
     }
     return null;
   }
@@ -54,18 +54,18 @@ class CardUtils {
 
     if ((month < 1) || (month > 12)) {
       // A valid month is between 1 (January) and 12 (December)
-      return 'Expiry month is invalid';
+      return 'Mes expiracion invalido';
     }
 
     var fourDigitsYear = convertYearTo4Digits(year);
     if ((fourDigitsYear < 1) || (fourDigitsYear > 2099)) {
       // We are assuming a valid should be between 1 and 2099.
       // Note that, it's valid doesn't mean that it has not expired.
-      return 'Expiry year is invalid';
+      return 'Fecha expiracion invalida';
     }
 
     if (!hasDateExpired(month, year)) {
-      return "Card has expired";
+      return "Tarjeta vencida";
     }
     return null;
   }
@@ -215,6 +215,6 @@ class CardUtils {
 
 class Strings {
   static const String fieldReq = 'Complete este campo';
-  static const String numberIsInvalid = 'Numero invalido';
+  static const String numberIsInvalid = 'Tarjeta invalida';
   static const String pay = 'Realizar pedido';
 }

@@ -14,11 +14,15 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  TextEditingController _dirContr;
-  TextEditingController _numContr;
-  TextEditingController _arsContr;
-  TextEditingController _nameContr;
-  TextEditingController _dateContr;
+  TextEditingController _calleDirContr = TextEditingController();
+  TextEditingController _ciuDirContr = TextEditingController();
+  TextEditingController _numDirContr = TextEditingController();
+  TextEditingController _numContr = TextEditingController();
+  TextEditingController _arsContr = TextEditingController();
+  TextEditingController _nameContr = TextEditingController();
+  TextEditingController _dateContr = TextEditingController();
+  TextEditingController _cvvController = TextEditingController();
+  TextEditingController _expDateController = TextEditingController();
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   var _formKey = GlobalKey<FormState>();
   var numberController = TextEditingController();
@@ -29,6 +33,16 @@ class _CartPageState extends State<CartPage> {
   bool loAntesPosible;
   DateTime selectedDate;
   TimeOfDay selectedTime;
+  bool nameTar = false;
+  bool numTar = false;
+  bool dateTar = false;
+  bool monto = false;
+  bool cvvTar = false;
+  bool number = false;
+  bool street = false;
+  bool card = false;
+  bool montoMenor;
+  bool city = false;
   @override
   void initState() {
     super.initState();
@@ -36,6 +50,30 @@ class _CartPageState extends State<CartPage> {
     loAntesPosible = false;
     _paymentCard.type = CardType.Others;
     numberController.addListener(_getCardTypeFrmNumber);
+  }
+
+  bool validateData(CartProvider cart) {
+    return street &&
+        city &&
+        number &&
+        (loAntesPosible ||
+            (!loAntesPosible &&
+                selectedDate != null &&
+                selectedTime != null)) &&
+        ((cart.efectivoPago && monto) ||
+            (!cart.efectivoPago &&
+                nameTar &&
+                numTar &&
+                cvvTar &&
+                dateTar &&
+                card));
+    // if (cart.efectivoPago) {
+    //   //Valido lo relacionado al monto
+    // } else {
+    //   //Valido lo relacionado a la tarjeta
+    //   _validateInputs();
+    //   data = _autoValidate;
+    // }
   }
 
   @override
@@ -51,7 +89,7 @@ class _CartPageState extends State<CartPage> {
           ),
         ),
       ], backgroundColor: Colors.grey[800], title: Text('Carrito de compra')),
-      floatingActionButton: _getPayButton(),
+      floatingActionButton: _getPayButton(cart),
       body: Container(
         child: ListView(
           children: [
@@ -60,13 +98,15 @@ class _CartPageState extends State<CartPage> {
               child: Column(children: [
                 Text("Direccion"),
                 TextField(
+                  onChanged: (value) => setState(() => street = value != ""),
                   decoration: InputDecoration(
                     icon: Icon(Icons.location_on),
                     labelText: 'Calle',
                   ),
-                  controller: _dirContr,
+                  controller: _calleDirContr,
                 ),
                 TextField(
+                  onChanged: (value) => setState(() => number = value != ""),
                   decoration: InputDecoration(
                       icon: Icon(Icons.location_on), labelText: 'Numero'),
                   inputFormatters: <TextInputFormatter>[
@@ -76,12 +116,13 @@ class _CartPageState extends State<CartPage> {
                     decimal: false,
                     signed: false,
                   ),
-                  controller: _dirContr,
+                  controller: _numDirContr,
                 ),
                 TextField(
+                  onChanged: (value) => setState(() => city = value != ""),
                   decoration: InputDecoration(
                       icon: Icon(Icons.location_on), labelText: 'Ciudad'),
-                  controller: _dirContr,
+                  controller: _ciuDirContr,
                 ),
                 SizedBox(height: 20),
                 Column(
@@ -234,6 +275,8 @@ class _CartPageState extends State<CartPage> {
                 onSaved: (String value) {
                   _card.name = value;
                 },
+                controller: _nameContr,
+                onChanged: (value) => setState(() => nameTar = value != ""),
                 keyboardType: TextInputType.text,
                 validator: (String value) =>
                     value.isEmpty ? Strings.fieldReq : null,
@@ -242,6 +285,7 @@ class _CartPageState extends State<CartPage> {
                 height: 30.0,
               ),
               TextFormField(
+                onChanged: (value) => setState(() => numTar = value != ""),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   WhitelistingTextInputFormatter.digitsOnly,
@@ -275,6 +319,8 @@ class _CartPageState extends State<CartPage> {
                   icon: Icon(Icons.verified_user),
                   labelText: 'CVV',
                 ),
+                onChanged: (value) => setState(() => cvvTar = value != ""),
+                controller: _cvvController,
                 validator: CardUtils.validateCVV,
                 keyboardType: TextInputType.number,
                 onSaved: (value) {
@@ -290,15 +336,17 @@ class _CartPageState extends State<CartPage> {
                   LengthLimitingTextInputFormatter(4),
                   CardMonthInputFormatter()
                 ],
+                onChanged: (value) => setState(() => dateTar = value != ""),
                 decoration: InputDecoration(
                   border: const UnderlineInputBorder(),
                   filled: true,
                   icon: Icon(Icons.date_range),
                   hintText: 'MM/YY',
-                  labelText: 'Expiry Date',
+                  labelText: 'Fecha vencimiento',
                 ),
                 validator: CardUtils.validateDate,
                 keyboardType: TextInputType.number,
+                controller: _expDateController,
                 onSaved: (value) {
                   List<int> expiryDate = CardUtils.getExpiryDate(value);
                   _paymentCard.month = expiryDate[0];
@@ -324,9 +372,14 @@ class _CartPageState extends State<CartPage> {
     setState(() {
       this._paymentCard.type = cardType;
     });
+    if (cardType == CardType.Visa) {
+      card = true;
+    } else {
+      card = false;
+    }
   }
 
-  void _validateInputs() {
+  void _validateInputs(CartProvider cart) {
     final FormState form = _formKey.currentState;
     if (!form.validate()) {
       setState(() {
@@ -334,13 +387,31 @@ class _CartPageState extends State<CartPage> {
       });
     } else {
       form.save();
+      cart.removeAll();
+      Navigator.pushNamed(context, '/success');
     }
   }
 
-  Widget _getPayButton() {
+  _validateAmmount(CartProvider cart) {
+    if (int.parse(_arsContr.text) >= cart.totalPrice) {
+      setState(() {
+        montoMenor = false;
+      });
+      cart.removeAll();
+      Navigator.pushNamed(context, '/success');
+    } else {
+      setState(() {
+        montoMenor = true;
+      });
+    }
+  }
+
+  Widget _getPayButton(CartProvider cart) {
     return FloatingActionButton.extended(
-      onPressed: _validateInputs,
-      backgroundColor: Colors.lightBlue,
+      onPressed: () => validateData(cart)
+          ? !cart.efectivoPago ? _validateInputs(cart) : _validateAmmount(cart)
+          : null,
+      backgroundColor: validateData(cart) ? Colors.lightBlue : Colors.grey[600],
       splashColor: Colors.deepPurple,
       shape: RoundedRectangleBorder(
         borderRadius: const BorderRadius.all(const Radius.circular(100.0)),
@@ -357,8 +428,13 @@ class _CartPageState extends State<CartPage> {
       padding: const EdgeInsets.only(right: 20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         TextField(
-          decoration: InputDecoration(labelText: 'Ingrese monto'),
+          decoration: InputDecoration(
+              errorText: montoMenor != null && montoMenor
+                  ? 'El monto debe ser mayor a la compra'
+                  : null,
+              labelText: 'Ingrese monto'),
           controller: _arsContr,
+          onChanged: (value) => setState(() => monto = value != ""),
           inputFormatters: <TextInputFormatter>[
             FilteringTextInputFormatter.digitsOnly
           ],

@@ -18,8 +18,7 @@ class ItemList extends StatelessWidget {
             padding: const EdgeInsets.all(10.0),
             child: GestureDetector(
               onTap: () => cart.items.isNotEmpty
-                  ? Navigator.of(context).push(MaterialPageRoute(
-                      builder: (BuildContext context) => CartPage()))
+                  ? Navigator.pushNamed(context, '/cart')
                   : null,
               child: Container(
                 height: 150.0,
