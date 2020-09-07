@@ -42,19 +42,19 @@ class _CartPageState extends State<CartPage> {
   bool street = false;
   bool card = false;
   bool montoMenor;
-  bool city = false;
+  String citySelected;
   @override
   void initState() {
     super.initState();
     showCredit = false;
     loAntesPosible = false;
     _paymentCard.type = CardType.Others;
+    citySelected = _cities.first.value.toString();
     numberController.addListener(_getCardTypeFrmNumber);
   }
 
   bool validateData(CartProvider cart) {
     return street &&
-        city &&
         number &&
         (loAntesPosible ||
             (!loAntesPosible &&
@@ -76,6 +76,49 @@ class _CartPageState extends State<CartPage> {
     // }
   }
 
+  List<DropdownMenuItem> _cities = [
+    DropdownMenuItem(
+      child: Text('Cordoba'),
+      value: 'Cordoba',
+    ),
+    DropdownMenuItem(
+      child: Text('Bell Ville'),
+      value: 'Bell Ville',
+    ),
+    DropdownMenuItem(
+      child: Text('Villa Maria'),
+      value: 'Villa Maria',
+    ),
+    DropdownMenuItem(
+      child: Text('Jesus Maria'),
+      value: 'Jesus Maria',
+    ),
+    DropdownMenuItem(
+      child: Text('Carlos Paz'),
+      value: 'Carlos Paz',
+    ),
+    DropdownMenuItem(
+      child: Text('Dean Funes'),
+      value: 'Dean Funes',
+    ),
+    DropdownMenuItem(
+      child: Text('Alta Gracia'),
+      value: 'Alta Gracia',
+    ),
+    DropdownMenuItem(
+      child: Text('Tanti'),
+      value: 'Tanti',
+    ),
+    DropdownMenuItem(
+      child: Text('Mar Chiquita'),
+      value: 'Mar Chiquita',
+    ),
+    DropdownMenuItem(
+      child: Text('San Francisco'),
+      value: 'San Francisco',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
@@ -95,147 +138,159 @@ class _CartPageState extends State<CartPage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Column(children: [
-                Text("Direccion"),
-                TextField(
-                  onChanged: (value) => setState(() => street = value != ""),
-                  decoration: InputDecoration(
-                    icon: Icon(Icons.location_on),
-                    labelText: 'Calle',
-                  ),
-                  controller: _calleDirContr,
-                ),
-                TextField(
-                  onChanged: (value) => setState(() => number = value != ""),
-                  decoration: InputDecoration(
-                      icon: Icon(Icons.location_on), labelText: 'Numero'),
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.digitsOnly
-                  ],
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: false,
-                    signed: false,
-                  ),
-                  controller: _numDirContr,
-                ),
-                TextField(
-                  onChanged: (value) => setState(() => city = value != ""),
-                  decoration: InputDecoration(
-                      icon: Icon(Icons.location_on), labelText: 'Ciudad'),
-                  controller: _ciuDirContr,
-                ),
-                SizedBox(height: 20),
-                Column(
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Text("Direccion"),
+                    TextField(
+                      onChanged: (value) =>
+                          setState(() => street = value != ""),
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.location_on),
+                        labelText: 'Calle',
+                      ),
+                      controller: _calleDirContr,
+                    ),
+                    TextField(
+                      onChanged: (value) =>
+                          setState(() => number = value != ""),
+                      decoration: InputDecoration(
+                          icon: Icon(Icons.location_on), labelText: 'Numero'),
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: false,
+                        signed: false,
+                      ),
+                      controller: _numDirContr,
+                    ),
+                    DropdownButton(
+                      items: _cities,
+                      value: citySelected,
+                      onChanged: (value) => setState(() {
+                        citySelected = value;
+                      }),
+                    ),
+                    // TextField(
+                    //   onChanged: (value) => setState(() => city = value != ""),
+                    //   decoration: InputDecoration(
+                    //       icon: Icon(Icons.location_on), labelText: 'Ciudad'),
+                    //   controller: _ciuDirContr,
+                    // ),
+                    SizedBox(height: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Lo antes posible "),
-                        Switch(
-                          value: loAntesPosible,
-                          onChanged: (val) =>
-                              setState(() => loAntesPosible = val),
+                        Row(
+                          children: [
+                            Text("Lo antes posible "),
+                            Switch(
+                              value: loAntesPosible,
+                              onChanged: (val) =>
+                                  setState(() => loAntesPosible = val),
+                            ),
+                          ],
                         ),
+                        Row(
+                          children: [
+                            loAntesPosible
+                                ? SizedBox()
+                                : RaisedButton(
+                                    child: Text(selectedDate == null
+                                        ? 'Fecha'
+                                        : DateFormat('dd/MM/yy')
+                                            .format(selectedDate)
+                                            .toString()),
+                                    onPressed: () async {
+                                      DateTime date = await showDatePicker(
+                                          context: context,
+                                          initialDate:
+                                              selectedDate ?? DateTime.now(),
+                                          firstDate: DateTime.now(),
+                                          lastDate: DateTime(
+                                              DateTime.now().year + 1));
+                                      if (date != null)
+                                        setState(() {
+                                          selectedDate = date;
+                                        });
+                                    },
+                                  ),
+                            SizedBox(
+                              width: 20,
+                            ),
+                            loAntesPosible
+                                ? SizedBox()
+                                : RaisedButton(
+                                    child: Text(selectedTime == null
+                                        ? 'Hora'
+                                        : DateFormat('HH:mm')
+                                            .format(DateTime(
+                                                DateTime.now().year,
+                                                DateTime.now().month,
+                                                DateTime.now().day,
+                                                selectedTime.hour,
+                                                selectedTime.minute))
+                                            .toString()),
+                                    onPressed: () async {
+                                      TimeOfDay time = await showTimePicker(
+                                        context: context,
+                                        initialTime:
+                                            selectedTime ?? TimeOfDay.now(),
+                                      );
+                                      if (time != null)
+                                        setState(() {
+                                          selectedTime = time;
+                                        });
+                                    },
+                                  )
+                          ],
+                        )
                       ],
                     ),
+                    SizedBox(height: 20),
                     Row(
                       children: [
-                        loAntesPosible
-                            ? SizedBox()
-                            : RaisedButton(
-                                child: Text(selectedDate == null
-                                    ? 'Fecha'
-                                    : DateFormat('dd/MM/yy')
-                                        .format(selectedDate)
-                                        .toString()),
-                                onPressed: () async {
-                                  DateTime date = await showDatePicker(
-                                      context: context,
-                                      initialDate:
-                                          selectedDate ?? DateTime.now(),
-                                      firstDate: DateTime.now(),
-                                      lastDate:
-                                          DateTime(DateTime.now().year + 1));
-                                  if (date != null)
-                                    setState(() {
-                                      selectedDate = date;
-                                    });
-                                },
-                              ),
+                        ChoiceChip(
+                            onSelected: (val) => cart.change(!val),
+                            selectedColor: Colors.green,
+                            labelStyle: TextStyle(color: Colors.white),
+                            label: Text('Tarjeta VISA'),
+                            selected: !cart.efectivoPago),
                         SizedBox(
-                          width: 20,
+                          width: 10,
                         ),
-                        loAntesPosible
-                            ? SizedBox()
-                            : RaisedButton(
-                                child: Text(selectedTime == null
-                                    ? 'Hora'
-                                    : DateFormat('HH:mm')
-                                        .format(DateTime(
-                                            DateTime.now().year,
-                                            DateTime.now().month,
-                                            DateTime.now().day,
-                                            selectedTime.hour,
-                                            selectedTime.minute))
-                                        .toString()),
-                                onPressed: () async {
-                                  TimeOfDay time = await showTimePicker(
-                                    context: context,
-                                    initialTime:
-                                        selectedTime ?? TimeOfDay.now(),
-                                  );
-                                  if (time != null)
-                                    setState(() {
-                                      selectedTime = time;
-                                    });
-                                },
-                              )
+                        ChoiceChip(
+                            onSelected: (val) => cart.change(val),
+                            selectedColor: Colors.green,
+                            labelStyle: TextStyle(color: Colors.white),
+                            label: Text('Efectivo'),
+                            selected: cart.efectivoPago),
                       ],
-                    )
-                  ],
-                ),
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    ChoiceChip(
-                        onSelected: (val) => cart.change(!val),
-                        selectedColor: Colors.green,
-                        labelStyle: TextStyle(color: Colors.white),
-                        label: Text('Tarjeta VISA'),
-                        selected: !cart.efectivoPago),
-                    SizedBox(
-                      width: 10,
                     ),
-                    ChoiceChip(
-                        onSelected: (val) => cart.change(val),
-                        selectedColor: Colors.green,
-                        labelStyle: TextStyle(color: Colors.white),
-                        label: Text('Efectivo'),
-                        selected: cart.efectivoPago),
-                  ],
-                ),
-                SizedBox(height: 20),
-                !cart.efectivoPago ? goToVisa() : buildEfectivo(),
-                SizedBox(height: 20),
-                showCredit && !cart.efectivoPago
-                    ? buildTarjeta()
-                    : Container(
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            boxShadow: [BoxShadow(color: Colors.grey[500])],
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(20))),
-                        width: 340,
-                        child: Column(
-                          children: cart.items
-                              .map((e) => ListTile(
-                                    title: Text(e.name),
-                                    trailing: Text('\$${e.precio.toString()}'),
-                                  ))
-                              .toList(),
-                        ),
-                      )
-              ]),
+                    SizedBox(height: 20),
+                    !cart.efectivoPago ? goToVisa() : buildEfectivo(),
+                    SizedBox(height: 20),
+                    showCredit && !cart.efectivoPago
+                        ? buildTarjeta()
+                        : Container(
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                boxShadow: [BoxShadow(color: Colors.grey[500])],
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20))),
+                            width: 340,
+                            child: Column(
+                              children: cart.items
+                                  .map((e) => ListTile(
+                                        title: Text(e.name),
+                                        trailing:
+                                            Text('\$${e.precio.toString()}'),
+                                      ))
+                                  .toList(),
+                            ),
+                          )
+                  ]),
             ),
           ],
         ),
